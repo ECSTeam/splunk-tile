@@ -1,0 +1,127 @@
+---
+# The high-level description of your tile.
+# Replace these properties with real values.
+#
+name: splunk-ecs
+icon_file: resources/splunk.png
+label: splunk-ecs
+description: Splunk firehose nozzle
+
+# Global defaults (all optional)
+#
+# org: test-org                         # Name of org to create for your apps
+# space: test-space                     # Name of space to create for your apps
+apply_open_security_group: true         # Apply open security group, default: false
+
+# Specify the packages to be included in your tile.
+# The format of the section to include depends on the type
+# of package you are describing. For fragments of each type
+# that you can copy & paste, see:
+#
+# https://github.com/cf-platform-eng/tile-generator/blob/master/README.md
+#
+stemcell_criteria:
+  os: ubuntu-trusty
+  version: '3263.12'
+
+packages:
+- name: cf-splunk
+  type: bosh-release
+  path: resources/release-cf-splunk-0.1.tgz
+  jobs:
+  - name: cf-splunk
+    templates:
+    - name: splunk-nozzle
+      release: cf-splunk
+    - name: splunk-forwarder
+      release: cf-splunk
+    dynamic_ip: 1
+    properties:
+      cf_splunk:
+        add_app_info: (( .properties.add_app_info.value ))
+        api_endoint: (( .properties.cf_api_endpoint.value ))
+        api_user: (( .properties.cf_api_user.value ))
+        api_password: (( .properties.cf_api_password.value ))
+        events: ['ValueMetric', 'CounterEvent', 'Error', 'ContainerMetric', 'HttpStartStop', 'LogMessage' ]
+        firehose_subscription_id: (( .properties.firehose_subscription_id.value ))
+        splunk_token: (( .properties.splunk_token.value ))
+        splunk_index: (( .properties.splunk_index.value ))
+        admin_user: (( .properties.cf_api_user.value ))
+        admin_pass: (( .properties.cf_api_password.value ))
+        splunk_server: (( .properties.splunk_server.value ))
+        splunk_token: (( .properties.splunk_token.value ))
+        splunk_ssl: (( .properties.splunk_ssl.value ))
+        splunk_ssl_cert: |
+          (( .properties.splunk_ssl_cert.value ))
+        splunk_ssl_password: (( .properties.splunk_ssl_password.value ))
+        splunk_ssl_root_ca: |
+          (( .properties.splunk_ssl_root_ca.value ))
+        splunk_ssl_common_name: (( .properties.splunk_ssl_common_name.value ))
+
+forms:
+- name: Splunk
+  label: Splunk properties
+  properties:
+  - name: add_app_info
+    type: boolean
+    label: add_app_info
+    description: Add app info in log message
+    default: true
+  - name: cf_api_endpoint
+    type: string
+    label: cf_api_endpoint
+    description: https://api.<SYSTEM_DOMAIN>
+  - name: cf_api_user
+    type: string
+    label: cf_api_user
+    description: cf_api_user
+    default: splunk.cf.user
+  - name: cf_api_password
+    type: secret
+    label: cf_api_password
+    description: cf_api_password
+  - name: firehose_subscription_id
+    type: string
+    label: firehose_subscription_id
+    description: firehose_subscription_id
+    default: splunk-firehose-subscription
+  - name: splunk_token
+    type: string
+    label: splunk_token
+    description: splunk_token to use for splunk forwarder
+    default: 46D19381-22DF-497F-A6E8-F88F12079823
+  - name: splunk_index
+    type: string
+    label: splunk_index
+    description: splunk_index
+    default: test_sandbox
+  - name: splunk_server
+    type: string
+    label: splunk_servers
+    description: comma separated (if more than one) values of splunk servers in host:port format
+  - name: splunk_ssl
+    type: boolean
+    description: splunk_ssl
+    label: splunk_ssl
+    default: true
+  - name: splunk_ssl_cert
+    type: text
+    label: splunk_ssl_cert
+    description: splunk_ssl_cert
+    default: | 
+      -----BEGIN CERTIFICATE-----
+      -----END CERTIFICATE-----
+      -----BEGIN ENCRYPTED PRIVATE KEY-----
+      -----END ENCRYPTED PRIVATE KEY-----
+  - name: splunk_ssl_password
+    type: secret
+    label: splunk_ssl_password
+    description: splunk_ssl_password
+  - name: splunk_ssl_root_ca
+    type: text
+    label: splunk_ssl_root_ca
+    description: splunk_ssl_root_ca
+  - name: splunk_ssl_common_name
+    type: string
+    label: splunk_ssl_common_name
+    description: splunk_ssl_common_name
